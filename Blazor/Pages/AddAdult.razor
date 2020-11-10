@@ -1,0 +1,95 @@
+@page "/adult"
+@using Models;
+@using Assignment.Data;
+@inject IGetFamilies GetFamilies;
+@inject NavigationManager navigationManager;
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<AuthorizeView Policy="SecurityLevel2" Context="Form">
+
+<h1>Add Adult</h1>
+
+<EditForm Model="@newAdult" OnValidSubmit="@addNewAdult">
+<DataAnnotationsValidator/>
+<ValidationSummary/>
+<div class="row">
+    <div class="col-md-4">
+        <form>
+            <div class="form-group">
+                <label class="control-label">ID</label>
+                <br/>
+                <InputNumber placeholder="Adult ID" @bind-Value="newAdult.Id"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">First Name</label>
+                <br/>
+                <InputTextArea placeholder="First Name" @bind-Value="newAdult.FirstName"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Last Name</label>
+                <br/>
+                <InputTextArea placeholder="Last Name" @bind-Value="newAdult.LastName"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Hair Color</label>
+                <br/>
+                <InputTextArea placeholder="Hair Color" @bind-Value="newAdult.HairColor"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Eye Color</label>
+                <br/>
+                <InputTextArea placeholder="Eye Color" @bind-Value="newAdult.EyeColor"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Age</label>
+                <br/>
+                <InputNumber placeholder="" @bind-Value="newAdult.Age"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Weight</label>
+                <br/>
+                <InputNumber placeholder="" @bind-Value="newAdult.Weight"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Height</label>
+                <br/>
+                <InputNumber placeholder="" @bind-Value="newAdult.Height"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Sex</label>
+                <br/>
+                <InputTextArea placeholder="" @bind-Value="newAdult.Sex"/>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Job</label>
+                <br/>
+                <InputTextArea placeholder="" @bind-Value="newAdult.JobTitle"/>
+            </div>
+        </form>
+        <button class="btn btn-primary" type="submit">Add new Adult</button>
+    </div>
+</div>
+</EditForm>
+</AuthorizeView>
+
+@code{
+    private Adult newAdult = new Adult();
+
+    public async Task addNewAdult(){
+        List<Adult> adults = await GetFamilies.allAdultsAsync();
+        int index = adults.FindIndex(item => item.Id == newAdult.Id);
+        if (index >= 0) 
+        {
+            await GetFamilies.UpdateAdultAsync(newAdult);
+        }
+        else{
+            await GetFamilies.addNewAdultAsync(newAdult);
+        }
+        navigationManager.NavigateTo("/showadult");
+    }
+    protected override async Task OnInitializedAsync(){
+        
+    }
+
+}
