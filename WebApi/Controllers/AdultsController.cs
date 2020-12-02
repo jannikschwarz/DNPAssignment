@@ -2,23 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WebApi.Data;
 using WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
+using Db;
 
 namespace WebApi.Controllers {
 [ApiController]
 [Route("[controller]")]
 public class AdultsController : ControllerBase {
-    private IGetFamilies getFamilies;
-    public AdultsController(IGetFamilies getFamilies) {
-        this.getFamilies = getFamilies;
+    private DataContext adultContext;
+    private IDbService service;
+
+    private IList<Adult> currentAdults;
+    public AdultsController(IDbService service) {
+        this.service = service;
+        service.RunDbSetup();
+        adultContext = new DataContext();
     }
 
     [HttpGet]
     public async Task<ActionResult<IList<Adult>>> GetAdults() {
         try {
-            IList<Adult> adults = await getFamilies.allAdultsAsync();
+            IList<Adult> adults = await service.getAllAdultAsync();
+            currentAdults = adults;
             return Ok(adults);
         } catch (Exception e) {
             Console.WriteLine(e);
@@ -30,7 +36,7 @@ public class AdultsController : ControllerBase {
     [Route("{id:int}")]
     public async Task<ActionResult> DeleteAdult([FromRoute] int id) {
         try {
-            await getFamilies.RemoveAdultAsync(id);
+            await service.removeAdultAsync(currentAdults.First(s => s.Id == id));
             return Ok();
         } catch (Exception e) {
             Console.WriteLine(e);
@@ -45,8 +51,8 @@ public class AdultsController : ControllerBase {
             return BadRequest(ModelState);
         }
         try {
-            await getFamilies.addNewAdultAsync(adult);
-            return Ok(); 
+            Adult toAdded = await service.saveAdultAsync(adult);
+            return Created($"/{toAdded.FirstName}",toAdded); 
         } catch (Exception e) {
             Console.WriteLine(e);
             return StatusCode(500, e.Message);
@@ -57,14 +63,12 @@ public class AdultsController : ControllerBase {
     [Route("{id:int}")]
     public async Task<ActionResult<Adult>> UpdateAdult([FromBody] Adult adult) {
         try {
-            await getFamilies.UpdateAdultAsync(adult);
+            await service.updateAdultAsync(adult);
             return Ok(); 
         } catch (Exception e) {
             Console.WriteLine(e);
             return StatusCode(500, e.Message);
         }
     }
-
-    
 }
 }
